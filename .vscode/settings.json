@@ -3,5 +3,15 @@
         "domcontentloaded",
         "dumpio",
         "networkidle"
-    ]
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "*.txt": true
+    },
+    "explorerExclude.backup": {}
 }

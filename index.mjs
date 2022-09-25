@@ -1,8 +1,7 @@
 import puppeteer from 'puppeteer-extra';
 import stealthPlugin from 'puppeteer-extra-plugin-stealth';
-
-process.env.USERNAME = 'akjha3314@gmail.com';
-process.env.PASSWORD = 'Bovkkib@2';
+import { readCSV } from './util.mjs';
+import './env.mjs';
 
 const selectors = {
     email: '[type="email"]',
@@ -11,28 +10,28 @@ const selectors = {
     emailNextButton: '#identifierNext',
     passwordNextButton: '#passwordNext',
     composeButton: 'div[role="button"][gh="cm"]',
+    to: '[name="to"]',
+    subject: '[name="subjectbox"]',
+    body: 'div[aria-label="Message Body"]',
+    sendButton: 'div[role="button"][data-tooltip="Send ‪(Ctrl-Enter)‬"]', //
 };
 
-(async () => {
-    puppeteer.use(stealthPlugin());
-    const browser = await puppeteer.launch({ headless: false });
-    const page = await browser.newPage();
-
+async function login(page) {
     await page.goto('https://mail.google.com/mail/u/0/?ogbl#inbox', {
         waitUntil: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'],
     });
 
     /*  Enter E-MAIL */
     {
-        await page.type(selectors.email, process.env.USERNAME);
-        await page.click(selectors.emailNextButton);
-        /*
-            await page.waitForSelector(selectors.email);
-            await page.waitForSelector(selectors.emailNextButton);
-            await page.$eval(selectors.email, (el, val) => (el.value = val), process.env.USERNAME);
-            const button = await page.$(selectors.emailNextButton);
-            await button.evaluate((btn) => btn.click());
-        */
+        // await page.type(selectors.email, process.env.USERNAME);
+        // await page.click(selectors.emailNextButton);
+        // /*
+        await page.waitForSelector(selectors.email);
+        await page.waitForSelector(selectors.emailNextButton);
+        await page.$eval(selectors.email, (el, val) => (el.value = val), process.env.USERNAME);
+        const button = await page.$(selectors.emailNextButton);
+        await button.evaluate((btn) => btn.click());
+        // */
     }
     /*  Enter PASSWORD */
     {
@@ -48,7 +47,9 @@ const selectors = {
         const button = await page.$(selectors.passwordNextButton);
         await button.evaluate((btn) => btn.click());
     }
+}
 
+async function composeMail(page, data, cb = () => {}) {
     /* Click on compose mail button */
     {
         await page.waitForSelector(selectors.composeButton);
@@ -56,78 +57,46 @@ const selectors = {
         await button.evaluate((btn) => btn.click());
     }
 
+    /* Compose Mail */
+    {
+        await page.waitForSelector(selectors.to);
+        await page.waitForSelector(selectors.subject);
+        await page.waitForSelector(selectors.body);
+        await page.waitForSelector(selectors.sendButton);
+        await page.waitForTimeout(500);
+        await page.type(selectors.to, data.to ?? 'anujkumar000000@gmail.com');
+        // await page.type(selectors.subject, data.subject ?? 'Test Mail');
+        // await page.type(selectors.body, data.body ?? 'Test body');
+        // await page.click(selectors.sendButton);
+
+        // await page.$eval(selectors.to, (el, val) => (el.value = val), data.to ?? 'anujkumar000000@gmail.com');
+        await page.$eval(selectors.subject, (el, val) => (el.value = val), data.subject ?? 'Test Mail');
+        await page.$eval(selectors.body, (el, val) => (el.value = val), data.body ?? 'Test body');
+        const button = await page.$(selectors.sendButton);
+        await button.evaluate((btn) => btn.click());
+        console.log('Mail Composed', data);
+        cb();
+    }
+}
+
+(async () => {
+    puppeteer.use(stealthPlugin());
+    const browser = await puppeteer.launch({ headless: false, slowMo: 0 });
+    const page = await browser.newPage();
+    let list = await readCSV('./list.csv');
+    list = list.map((d) => {
+        const obj = {};
+        obj.to = d.email;
+        obj.subject = d.subject;
+        obj.body = 'Test Body';
+        return obj;
+    });
+    console.log({ list });
+    await login(page);
+    for (const data of list) {
+        // await page.waitForTimeout(2000);
+        await composeMail(page, data, () => {});
+    }
+    // await page.close();
     // await browser.close();
 })();
-
-// import puppeteer from 'puppeteer-extra';
-// import chromium from 'chrome-aws-lambda';
-// import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-// import { takeScreenshot, grabElement } from './util.mjs';
-
-// puppeteer.use(StealthPlugin());
-// StealthPlugin.setMaxListeners = () => {};
-
-// process.env.USERNAME = 'akjha3314@gmail.com';
-// process.env.PASSWORD = 'password';
-
-// const url = 'https://accounts.google.com/v3/signin/identifier?dsh=S889591592%3A1664099511058827&continue=https%3A%2F%2Fmail.google.com&ec=GAlAFw&hl=en&service=mail&flowName=GlifWebSignIn&flowEntry=AddSession';
-
-// const options = {
-//     waitUntil: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'],
-// };
-
-// const selectors = {
-//     signIn: '#gb > div > div.gb_Re > a',
-//     email: 'input[type="email"]',
-// };
-
-// (async () => {
-//     const browser = await puppeteer.launch({
-//         headless: false,
-//         // args: ['--no-sandbox', '--disable-setuid-sandbox'],
-//         args: chromium.args,
-//         defaultViewport: chromium.defaultViewport,
-//         dumpio: false,
-//         executablePath: await chromium.executablePath,
-//         headless: chromium.headless,
-//         ignoreHTTPSErrors: true,
-//     });
-//     const page = await browser.newPage();
-//     await page.setBypassCSP(true);
-//     await page.goto(url, options);
-
-//     // await page.mainFrame().waitForSelector('#identifierId');
-//     // console.log('Typing email...');
-//     // await page.type('#identifierId', process.env.USERNAME);
-//     // await page.mainFrame().waitForSelector('#identifierNext');
-//     // console.log('Clicking next button...');
-//     // await page.click('#identifierNext');
-//     // await page.waitFor(3000);
-
-//     // click on the sign in button
-//     // await page.click(selectors.signIn);
-
-//     await page.waitForSelector(selectors.email);
-//     await page.$eval(
-//         selectors.email,
-//         (el, _username) => {
-//             el.value = _username;
-//         },
-//         process.env.USERNAME
-//     );
-//     await page.keyboard.press('Enter');
-//     // await page.$eval(
-//     //     selectors.email,
-//     //     (el, _password) => {
-//     //         el.value = _password;
-//     //     },
-//     //     process.env.PASSWORD
-//     // );
-
-//     // fill in the email field of gmail
-
-//     // await page.type(selectors.email, 'akjha3314@gmail.com');
-//     // await page.type('#identifierId', 'Bovkkib@2');
-//     // await page.click('#identifierNext');
-//     // await browser.close();
-// })();
