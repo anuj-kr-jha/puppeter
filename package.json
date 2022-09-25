@@ -1,0 +1,16 @@
+{
+    "name": "puppeter",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "type": "module",
+    "dependencies": {
+        "chrome-aws-lambda": "^10.1.0",
+        "puppeteer": "^18.0.5",
+        "puppeteer-extra": "^3.3.4",
+        "puppeteer-extra-plugin-stealth": "^2.11.1"
+    },
+    "devDependencies": {
+        "@types/puppeteer": "^5.4.6"
+    }
+}
