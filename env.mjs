@@ -1,2 +1,2 @@
-process.env.USERNAME = '';
-process.env.PASSWORD = '';
+process.env.USERNAME = 'xyz@gmail.com';
+process.env.PASSWORD = 'qwerty';

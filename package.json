@@ -4,6 +4,9 @@
     "main": "index.js",
     "license": "MIT",
     "type": "module",
+    "scripts": {
+        "start": "node index.mjs"
+    },
     "dependencies": {
         "chrome-aws-lambda": "^10.1.0",
         "neat-csv": "^7.0.0",
